@@ -1,6 +1,6 @@
 This is a demo of a graphics engine within a C# console window.
 
-For the demo to work properly, you need to install the "Pastel" package:
+For the demo to work properly, you need to install the "Pastel" package: \n
 https://github.com/silkfire/Pastel
 
 And extract this archive of media to the root folder of the project:
