@@ -1,11 +1,5 @@
-﻿using Pastel;
-using System.Drawing;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using ConsoleGraphics;
-using Max = ConsoleGraphics.Maximizer;
+﻿using Max = ConsoleGraphics.Maximizer;
 using CG = ConsoleGraphics.ConsoleGraphics;
-using CI = ConsoleGraphics.ConsoleImage;
 using CS = ConsoleSound.ConsoleSound;
 using System.Media;
 

@@ -1,13 +1,5 @@
-﻿using Pastel;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
+﻿using System.Drawing;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ConsoleGraphics
 {

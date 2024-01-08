@@ -1,7 +1,5 @@
 ﻿using Pastel;
-using System.Collections.Immutable;
 using System.Drawing;
-using System.Drawing.Imaging;
 
 namespace ConsoleGraphics
 {
