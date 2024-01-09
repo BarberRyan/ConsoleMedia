@@ -25,7 +25,7 @@ namespace ConsoleGraphics
                         {
                             if (transparentAnim)
                             {
-                                Console.Write("██".Pastel(Console.BackgroundColor));
+                                Console.Write("██".Pastel(Console.BackgroundColor).PastelBg(Console.BackgroundColor));
                             }
                             else
                             {
@@ -34,7 +34,7 @@ namespace ConsoleGraphics
                         }
                         else
                         {
-                            Console.Write("██".Pastel(Color.FromArgb(color.R, color.G, color.B)));
+                            Console.Write("██".Pastel(color).PastelBg(color));
                         }
                     }
                     Console.SetCursorPosition(xPos * 2, yPos + y + 1);
@@ -55,15 +55,16 @@ namespace ConsoleGraphics
         /// <param name="loopCount">The number of times the animation should play</param>
         /// <param name="startFrame">Frame of the animation to start on</param>
         /// <param name="endFrame">Frame of the animation to end on</param>
+        /// <param name="frameDelay">Delay before displaying the next frame in milliseconds</param>
         /// <param name="transparent">Set to true to set transparent pixel tiles to the background color (to avoid trails in transparent animations)</param>
-        public static void DisplayAnimatedImage(ConsoleImageAnimated imgIn, int xPos = 0, int yPos = 0, int loopCount = 1, int startFrame = 0, int endFrame = 999, bool transparent = false)
+        public static void DisplayAnimatedImage(ConsoleImageAnimated imgIn, int xPos = 0, int yPos = 0, int loopCount = 1, int startFrame = 0, int endFrame = 999, int frameDelay = 0, bool transparent = false)
         {
             if(startFrame < 0) { startFrame = 0; }
-            if(startFrame >= imgIn.frameCount) { startFrame = imgIn.frameCount; }
-            if(endFrame >= imgIn.frameCount) {  endFrame = imgIn.frameCount; }
+            if(startFrame >= imgIn.FrameCount) { startFrame = imgIn.FrameCount; }
+            if(endFrame >= imgIn.FrameCount) {  endFrame = imgIn.FrameCount; }
             if(endFrame <= startFrame)
             {
-                if(startFrame == imgIn.frameCount)
+                if(startFrame == imgIn.FrameCount)
                 {
                     startFrame--;
                 }
@@ -74,7 +75,8 @@ namespace ConsoleGraphics
             {
                 for (int j = startFrame; j < endFrame; j++)
                 {
-                    DisplayImage(imgIn.frames[j], xPos, yPos, transparent);
+                    DisplayImage(imgIn.Frames[j], xPos, yPos, transparent);
+                    System.Threading.Thread.Sleep(frameDelay);
                 }
             }
         }
@@ -90,9 +92,9 @@ namespace ConsoleGraphics
         public static void DisplayFrame(ConsoleImageAnimated imgIn, int frame, int xPos = 0, int yPos = 0, bool opaque = false)
         {
             if(frame < 0) { frame = 0; }
-            if(frame >= imgIn.frameCount) {  frame = imgIn.frameCount - 1; }
+            if(frame >= imgIn.FrameCount) {  frame = imgIn.FrameCount - 1; }
 
-            DisplayImage(imgIn.frames[frame], xPos, yPos, opaque);
+            DisplayImage(imgIn.Frames[frame], xPos, yPos, opaque);
         }
     }
 }

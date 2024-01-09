@@ -6,11 +6,12 @@ namespace ConsoleGraphics
 {
     public class ConsoleImageAnimated
     {
-        public readonly int xSiz;
-        public readonly int ySiz;
-        public readonly int frameCount;
-        public readonly ConsoleImage[]? frames;
-        public readonly string? fileSrc;
+        public readonly int XSiz;
+        public readonly int YSiz;
+        public readonly int FrameCount;
+        public int FrameDelay;
+        public readonly ConsoleImage[]? Frames;
+        public readonly string? FileSrc;
 
         /// <summary>
         /// Creates a ConsoleImageAnimated instance from a specified file directory
@@ -20,7 +21,9 @@ namespace ConsoleGraphics
         /// <param name="ySizIn">Height of the ConsoleImageAnimated in pixel tiles</param>
         /// <param name="fullDir">Set to true if the source image isn't in the "images" folder of the working directory</param>
         /// <param name="url">Set to true to indicate that sourceIn is a URL</param>
-        public ConsoleImageAnimated(String sourceIn, int xSizIn, int ySizIn, bool fullDir = false, bool url = false)
+        /// <param name="frameDelay">Delay before displaying the next frame in milliseconds</param>
+        /// <param name="crop">Crops the source frames based on (Starting X, Starting Y, Width, Height) in pixels</param>
+        public ConsoleImageAnimated(String sourceIn, int xSizIn, int ySizIn, bool fullDir = false, bool url = false, int frameDelay = 0, (int, int, int, int)? crop = null)
         {
             String fileSrc = "";
             Image image = new Bitmap(21, 21, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -60,10 +63,11 @@ namespace ConsoleGraphics
                 Console.WriteLine($"Image at {fileSrc} gave error of {e.Message}");
             }
 
-            xSiz = xSizIn;
-            ySiz = ySizIn;
-            frames = GetFrames(image);
-            frameCount = frames.Length;
+            XSiz = xSizIn;
+            YSiz = ySizIn;
+            FrameDelay = frameDelay;
+            Frames = GetFrames(image, crop);
+            FrameCount = Frames.Length;
         }
 
         /// <summary>
@@ -72,20 +76,24 @@ namespace ConsoleGraphics
         /// <param name="imgIn">Image object of source image</param>
         /// <param name="xSizIn">Width of the ConsoleImageAnimated in pixel tiles</param>
         /// <param name="ySizIn">Height of the ConsoleImageAnimated in pixel tiles</param>
-        public ConsoleImageAnimated(Image imgIn, int xSizIn, int ySizIn)
+        /// <param name="frameDelay">Delay before displaying the next frame in milliseconds</param>
+        /// <param name="crop">Crops the source frames based on (Starting X, Starting Y, Width, Height) in pixels</param>
+        public ConsoleImageAnimated(Image imgIn, int xSizIn, int ySizIn, int frameDelay  = 0, (int, int, int, int)? crop = null)
         {
-            xSiz = xSizIn;
-            ySiz = ySizIn;
-            frames = GetFrames(imgIn);
-            frameCount = frames.Length;
+            XSiz = xSizIn;
+            YSiz = ySizIn;
+            FrameDelay = frameDelay;
+            Frames = GetFrames(imgIn, crop);
+            FrameCount = Frames.Length;
         }
 
         /// <summary>
         /// Creates instances of ConsoleImage for each frame of imgIn
         /// </summary>
         /// <param name="imgIn">Instance of Image to parse into frames</param>
+        /// <param name="crop">Crops the source frames based on (Starting X, Starting Y, Width, Height) in pixels</param>
         /// <returns>Array of ConsoleImage instances to be displayed for the animation</returns>
-        private ConsoleImage[] GetFrames(Image imgIn)
+        private ConsoleImage[] GetFrames(Image imgIn, (int, int, int, int)? crop = null)
         {
             FrameDimension dimension = new(imgIn.FrameDimensionsList[0]);
             int frameCount = imgIn.GetFrameCount(dimension);
@@ -94,9 +102,35 @@ namespace ConsoleGraphics
             for (int i = 0; i < frameCount; i++)
             {
                 imgIn.SelectActiveFrame(dimension, i);
-                frames[i] = new ConsoleImage(imgIn, xSiz, ySiz);
+                frames[i] = new ConsoleImage(imgIn, XSiz, YSiz, crop);
             }
             return frames;
+        }
+
+        /// <summary>
+        /// Displays the animated image
+        /// </summary>
+        /// <param name="xPos">X coordinate of the top left pixel</param>
+        /// <param name="yPos">Y coordinate of the top left pixel</param>
+        /// <param name="loopCount">The number of times the animation should play</param>
+        /// <param name="startFrame">Frame of the animation to start on</param>
+        /// <param name="endFrame">Frame of the animation to end on</param>
+        /// <param name="transparent">Set to true to set transparent pixel tiles to the background color (to avoid trails in transparent animations)</param>
+        public void Display(int xPos = 0, int yPos = 0, int loopCount = 1, int startFrame = 0, int endFrame = 999, bool transparent = false)
+        {
+            ConsoleGraphics.DisplayAnimatedImage(this, xPos, yPos, loopCount, startFrame, endFrame, FrameDelay, transparent);
+        }
+
+        /// <summary>
+        /// Displays the ConsoleImage of a specified frame of a ConsoleImageAnimated
+        /// </summary>
+        /// <param name="frame">Frame of the animation to display</param>
+        /// <param name="xPos">X coordinate of the top left pixel</param>
+        /// <param name="yPos">Y coordinate of the top left pixel</param>
+        /// <param name="opaque">Set true to make transparent pixels match the background color.</param>
+        public void DisplayFrame(int frame, int xPos = 0, int yPos = 0, bool opaque = false)
+        {
+            ConsoleGraphics.DisplayFrame(this, frame, xPos, yPos, opaque);
         }
 
     }

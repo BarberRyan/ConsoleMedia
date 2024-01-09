@@ -5,11 +5,11 @@ namespace ConsoleGraphics
 {
     public class ConsoleImage
     {
-        public int XSiz;
-        public int YSiz;
-        public string FileSrc = "";
-        public  Bitmap SrcImage = new(21, 21, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-        public Color[][] Pixels = new Color[1][];
+        public readonly int XSiz;
+        public readonly int YSiz;
+        public readonly string FileSrc = "";
+        public readonly Bitmap SrcImage = new(21, 21, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        public readonly Color[][] Pixels = new Color[1][];
 
         /// <summary>
         /// Creates a ConsoleImage instance from a specified file directory
@@ -19,7 +19,8 @@ namespace ConsoleGraphics
         /// <param name="ySizIn">Height of the ConsoleImage in pixel tiles</param>
         /// <param name="fullDir">Set to true if the source image isn't in the "images" folder of the working directory and is not a URL</param>
         /// <param name="url">Set to true if sourceIn is a URL</param>
-        public ConsoleImage(string sourceIn, int xSizIn, int ySizIn, bool fullDir = false, bool url = false)
+        /// <param name="crop">Crops the source image based on (Starting X, Starting Y, Width, Height) in pixels</param>
+        public ConsoleImage(string sourceIn, int xSizIn, int ySizIn, bool fullDir = false, bool url = false, (int, int, int, int)? crop = null)
         {
             if (fullDir)
             {
@@ -30,7 +31,6 @@ namespace ConsoleGraphics
                 WebClient w = new();
                 try
                 {
-                    Console.WriteLine("PING!");
                     byte[] imgBtye = w.DownloadData(sourceIn);
                     MemoryStream stream = new (imgBtye);
                     SrcImage = (Bitmap)Bitmap.FromStream(stream);
@@ -48,10 +48,7 @@ namespace ConsoleGraphics
             }
             try
             {
-                if (!url)
-                {
-                    SrcImage = (Bitmap)Bitmap.FromFile(FileSrc);
-                }
+                if (!url) { SrcImage = (Bitmap)Bitmap.FromFile(FileSrc); }
             }
             catch(Exception e)
             {
@@ -60,6 +57,10 @@ namespace ConsoleGraphics
             }
             XSiz = xSizIn;
             YSiz = ySizIn;
+
+            if(crop != null) { SrcImage = Crop(((int, int, int, int))crop); }
+
+
             Pixels = GeneratePixels();
         }
 
@@ -69,20 +70,21 @@ namespace ConsoleGraphics
         /// <param name="imgIn">Image object of source image</param>
         /// <param name="xSizIn">Width of the ConsoleImage in pixel tiles</param>
         /// <param name="ySizIn">Height of the ConsoleImage in pixel tiles</param>
-        public ConsoleImage(Image imgIn, int xSizIn, int ySizIn)
+        /// <param name="crop">Crops the source image based on (Starting X, Starting Y, Width, Height) in pixels</param>
+        public ConsoleImage(Image imgIn, int xSizIn, int ySizIn, (int, int, int, int)? crop = null)
         {
             XSiz = xSizIn;
             YSiz = ySizIn;
             FileSrc = "TEMP";
             SrcImage = new Bitmap(imgIn);
+            if(crop != null) { SrcImage = Crop(((int, int, int, int))crop); }
+
             Pixels = GeneratePixels();
         }
 
         /// <summary>
         /// Creates pixel tile data for displaying the ConsoleImage
         /// </summary>
-        /// <param name="xSizIn">Width of the parent ConsoleImage in pixel tiles</param>
-        /// <param name="ySizIn">Height of the parent ConsoleImage in pixel tiles</param>
         /// <returns>2 Dimensional array of Color objects representing the color of each pixel tile</returns>
         private Color[][] GeneratePixels()
         {
@@ -138,6 +140,69 @@ namespace ConsoleGraphics
                 }
 
             return Color.FromArgb(ATotal / res, RTotal / res, GTotal / res, BTotal / res);
+        }
+
+        /// <summary>
+        /// Displays the image
+        /// </summary>
+        /// <param name="xPos">X coordinate of top left pixel tile (in pixel tiles)</param>
+        /// <param name="yPos">Y coordinate of top left pixel tile (in pixel tiles)</param>
+        public void Display(int xPos = 0, int yPos = 0)
+        {
+            ConsoleGraphics.DisplayImage(this, xPos, yPos);
+        }
+
+
+        /// <summary>
+        /// Ensures that crop values are not outside the range of the source image
+        /// </summary>
+        /// <param name="crop">crop parameters as (Starting X, Starting Y, Width, Height) in pixels</param>
+        /// <returns>crop parameters as (Starting X, Starting Y, Width, Height) in pixels</returns>
+        private (int, int, int, int) CropCoordHandler((int, int, int, int) crop)
+        {
+            int xStart = crop.Item1;
+            int yStart = crop.Item2;
+            int width = crop.Item3;
+            int height = crop.Item4;
+
+            //X CROP
+            if (xStart < 0)
+            {
+               xStart = 0;
+            }
+            if (xStart + width >= SrcImage.Width)
+            {
+                width = SrcImage.Width - xStart;
+            }
+
+            //Y CROP
+            if (yStart < 0)
+            {
+                yStart = 0;
+            }
+            if (yStart + height >= SrcImage.Height)
+            {
+                height = SrcImage.Height - yStart;
+            }
+
+            return (xStart, yStart, width, height);
+        }
+
+
+        /// <summary>
+        /// Returns a copy of SrcImage cropped to the specified parameters
+        /// </summary>
+        /// <param name="crop">crop parameters as (Starting X, Starting Y, Width, Height) in pixels</param>
+        /// <returns>Cropped Bitmap</returns>
+        private Bitmap Crop((int, int, int, int) crop)
+        {
+            crop = CropCoordHandler(crop);
+            Rectangle cropRect = new Rectangle(crop.Item1, crop.Item2, crop.Item3, crop.Item4);
+
+            using (Bitmap croppedImage = SrcImage.Clone(cropRect, SrcImage.PixelFormat))
+            {
+                return new Bitmap(croppedImage);
+            }
         }
 
     }
